@@ -41,13 +41,13 @@ echo "[fetch-kernel] Downloading checksum..."
 wget \
     --quiet \
     --timeout=60 \
-    -O "${TARBALL_PATH}.sha256" \
-    "${BASE_URL}/${TARBALL_NAME}.sha256"
+    -O "${OUTPUT_DIR}/sha256sums.asc" \
+    "${BASE_URL}/sha256sums.asc"
 
 echo "[fetch-kernel] Verifying checksum..."
-# sha256 file has format: <hash>  <filename>
-# We strip the path so sha256sum -c works from the output dir
+# extract the specific hash for our tarball
 pushd "$OUTPUT_DIR" > /dev/null
+grep "${TARBALL_NAME}" sha256sums.asc > "${TARBALL_NAME}.sha256"
 sha256sum -c "${TARBALL_NAME}.sha256"
 popd > /dev/null
 
