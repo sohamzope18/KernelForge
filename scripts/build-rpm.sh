@@ -102,23 +102,19 @@ fi
 echo ""
 echo "==> [3/5] Building kernel with ${JOBS} jobs (this takes 30–120 min)..."
 
-# Set RPM build dir
-export RPM_BUILD_ROOT=/root/rpmbuild
-rpmdev-setuptree
-
 make -C "$KERNEL_DIR" \
     ARCH="$ARCH" \
     CROSS_COMPILE="$CROSS_COMPILE" \
     -j"$JOBS" \
-    binrpm-pkg \
-    RPMBUILD_FLAGS="--define '_topdir /root/rpmbuild'"
+    binrpm-pkg
 
 # ── Collect output packages ───────────────────────────────────
 echo ""
 echo "==> [4/5] Collecting RPM packages..."
 
-find /root/rpmbuild/RPMS -name "*.rpm" -exec cp -v {} "$OUTPUT_DIR/" \;
-find /root/rpmbuild/SRPMS -name "*.src.rpm" -exec cp -v {} "$OUTPUT_DIR/" \;
+# make rpm-pkg writes RPMs to ${KERNEL_DIR}/rpmbuild/
+find "${KERNEL_DIR}/rpmbuild/RPMS" -name "*.rpm" -exec cp -v {} "$OUTPUT_DIR/" \;
+find "${KERNEL_DIR}/rpmbuild/SRPMS" -name "*.src.rpm" -exec cp -v {} "$OUTPUT_DIR/" \; 2>/dev/null || true
 
 # ── Summary ───────────────────────────────────────────────────
 echo ""
