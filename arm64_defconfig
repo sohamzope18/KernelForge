@@ -1,0 +1,201 @@
+# ─────────────────────────────────────────────────────────────
+# ARM64 (AArch64) Kernel Configuration
+# Linux Kernel 6.6.x LTS — Minimal production config
+#
+# To generate a full config:
+#   make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- defconfig
+#   make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- menuconfig
+#
+# After placing this file in the build directory:
+#   make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- olddefconfig
+# ─────────────────────────────────────────────────────────────
+
+# ── Architecture base ─────────────────────────────────────────
+CONFIG_ARM64=y
+CONFIG_64BIT=y
+CONFIG_MMU=y
+CONFIG_SMP=y
+CONFIG_NR_CPUS=256
+CONFIG_PREEMPT_VOLUNTARY=y
+CONFIG_HZ_250=y
+CONFIG_HZ=250
+
+# ── ARM64 CPU features ────────────────────────────────────────
+CONFIG_ARM64_4K_PAGES=y
+CONFIG_ARM64_VA_BITS_48=y
+CONFIG_ARM64_PA_BITS_48=y
+CONFIG_COMPAT=y                  # 32-bit ARM application support
+CONFIG_ARM64_ERRATUM_843419=y
+CONFIG_ARM64_ERRATUM_845719=y
+CONFIG_CPU_FREQ=y
+CONFIG_CPU_FREQ_DEFAULT_GOV_ONDEMAND=y
+CONFIG_CPUFREQ_DT=y
+CONFIG_ARM_CPUFREQ=y
+CONFIG_ENERGY_MODEL=y
+
+# ── General kernel features ───────────────────────────────────
+CONFIG_PRINTK=y
+CONFIG_BUG=y
+CONFIG_ELF_CORE=y
+CONFIG_BASE_FULL=y
+CONFIG_FUTEX=y
+CONFIG_EPOLL=y
+CONFIG_SIGNALFD=y
+CONFIG_TIMERFD=y
+CONFIG_EVENTFD=y
+CONFIG_SHMEM=y
+CONFIG_AIO=y
+CONFIG_IO_URING=y
+CONFIG_KALLSYMS=y
+CONFIG_KALLSYMS_ALL=y
+
+# ── Memory management ─────────────────────────────────────────
+CONFIG_TRANSPARENT_HUGEPAGE=y
+CONFIG_TRANSPARENT_HUGEPAGE_ALWAYS=y
+CONFIG_COMPACTION=y
+CONFIG_MIGRATION=y
+CONFIG_KSM=y
+CONFIG_MEMORY_HOTPLUG=y
+CONFIG_MEMORY_HOTREMOVE=y
+CONFIG_NUMA=y
+CONFIG_NUMA_BALANCING=y
+
+# ── Block layer ───────────────────────────────────────────────
+CONFIG_BLOCK=y
+CONFIG_MQ_IOSCHED_DEADLINE=y
+CONFIG_MQ_IOSCHED_KYBER=y
+CONFIG_BLK_WBT=y
+
+# ── Storage drivers ───────────────────────────────────────────
+CONFIG_SCSI=y
+CONFIG_BLK_DEV_SD=y
+CONFIG_SCSI_VIRTIO=y
+CONFIG_VIRTIO_BLK=y
+CONFIG_NVME_CORE=y
+CONFIG_BLK_DEV_NVME=y
+CONFIG_MMC=y                     # SD/eMMC for embedded ARM boards
+CONFIG_MMC_BLOCK=y
+CONFIG_MMC_SDHCI=y
+CONFIG_MMC_SDHCI_PLTFM=y
+
+# ── Network ───────────────────────────────────────────────────
+CONFIG_NET=y
+CONFIG_INET=y
+CONFIG_IPV6=y
+CONFIG_NETFILTER=y
+CONFIG_NETFILTER_ADVANCED=y
+CONFIG_NF_CONNTRACK=m
+CONFIG_IP_NF_IPTABLES=m
+CONFIG_IP_NF_FILTER=m
+CONFIG_IP_NF_NAT=m
+CONFIG_NET_SCHED=y
+CONFIG_NET_SCH_FQ_CODEL=y
+CONFIG_TCP_CONG_BBR=m
+CONFIG_VIRTIO_NET=y
+CONFIG_STMMAC_ETH=y              # Common on ARM SoCs (RPi, etc.)
+CONFIG_DWMAC_GENERIC=y
+
+# ── ARM64 Platform / SoC Support ─────────────────────────────
+CONFIG_ARCH_SUNXI=y              # Allwinner (Orange Pi, etc.)
+CONFIG_ARCH_BCM=y                # Broadcom (Raspberry Pi)
+CONFIG_ARCH_BCM2835=y            # Raspberry Pi 3/4
+CONFIG_ARCH_QCOM=y               # Qualcomm SoCs
+CONFIG_ARCH_LAYERSCAPE=y         # NXP Layerscape
+CONFIG_ARCH_ROCKCHIP=y           # Rockchip (Rock Pi, etc.)
+CONFIG_ARCH_MESON=y              # Amlogic
+CONFIG_ARCH_MEDIATEK=y           # MediaTek
+
+# ── Filesystems ───────────────────────────────────────────────
+CONFIG_EXT4_FS=y
+CONFIG_EXT4_USE_FOR_EXT2=y
+CONFIG_XFS_FS=y
+CONFIG_BTRFS_FS=y
+CONFIG_TMPFS=y
+CONFIG_TMPFS_POSIX_ACL=y
+CONFIG_PROC_FS=y
+CONFIG_SYSFS=y
+CONFIG_DEVTMPFS=y
+CONFIG_DEVTMPFS_MOUNT=y
+CONFIG_VFAT_FS=y
+CONFIG_OVERLAY_FS=y
+CONFIG_FUSE_FS=m
+
+# ── Virtualization ────────────────────────────────────────────
+CONFIG_VIRTIO=y
+CONFIG_VIRTIO_PCI=y
+CONFIG_VIRTIO_MMIO=y             # ARM often uses MMIO not PCI
+CONFIG_VIRTIO_BALLOON=y
+CONFIG_VIRTIO_CONSOLE=y
+CONFIG_KVM=m
+CONFIG_KVM_ARM_HOST=m
+
+# ── Security ─────────────────────────────────────────────────
+CONFIG_SECURITY=y
+CONFIG_SECURITY_SELINUX=y
+CONFIG_SECURITY_SELINUX_BOOTPARAM=y
+CONFIG_SECURITY_APPARMOR=y
+CONFIG_SECCOMP=y
+CONFIG_SECCOMP_FILTER=y
+CONFIG_RANDOMIZE_BASE=y
+CONFIG_STACKPROTECTOR_STRONG=y
+CONFIG_HARDENED_USERCOPY=y
+
+# ── Namespaces and cgroups (required for containers) ─────────
+CONFIG_NAMESPACES=y
+CONFIG_UTS_NS=y
+CONFIG_IPC_NS=y
+CONFIG_USER_NS=y
+CONFIG_PID_NS=y
+CONFIG_NET_NS=y
+CONFIG_CGROUPS=y
+CONFIG_CGROUP_FREEZER=y
+CONFIG_CGROUP_DEVICE=y
+CONFIG_CPUSETS=y
+CONFIG_CGROUP_CPUACCT=y
+CONFIG_MEMCG=y
+CONFIG_BLK_CGROUP=y
+CONFIG_CGROUP_SCHED=y
+CONFIG_FAIR_GROUP_SCHED=y
+
+# ── Hardware interfaces ───────────────────────────────────────
+CONFIG_I2C=y
+CONFIG_I2C_CHARDEV=y
+CONFIG_SPI=y
+CONFIG_SPI_MASTER=y
+CONFIG_GPIOLIB=y
+CONFIG_GPIO_SYSFS=y
+CONFIG_PWM=y
+CONFIG_USB_SUPPORT=y
+CONFIG_USB=y
+CONFIG_USB_XHCI_HCD=y
+CONFIG_USB_XHCI_PCI=y
+CONFIG_USB_DWC3=y                # DesignWare USB3 (common on ARM)
+CONFIG_USB_DWC2=y                # DesignWare USB2
+
+# ── Serial / console ─────────────────────────────────────────
+CONFIG_TTY=y
+CONFIG_SERIAL_AMBA_PL011=y      # ARM PL011 UART (standard on ARM)
+CONFIG_SERIAL_AMBA_PL011_CONSOLE=y
+CONFIG_SERIAL_8250=y
+CONFIG_SERIAL_8250_CONSOLE=y
+CONFIG_UNIX98_PTYS=y
+
+# ── Module support ────────────────────────────────────────────
+CONFIG_MODULES=y
+CONFIG_MODULE_UNLOAD=y
+CONFIG_MODVERSIONS=y
+CONFIG_MODULE_SIG=y
+CONFIG_MODULE_SIG_SHA256=y
+
+# ── Device Tree (mandatory for ARM) ──────────────────────────
+CONFIG_OF=y
+CONFIG_OF_FLATTREE=y
+CONFIG_OF_EARLY_FLATTREE=y
+CONFIG_OF_DYNAMIC=y
+CONFIG_OF_OVERLAY=y
+
+# ── Debugging (minimal) ───────────────────────────────────────
+# CONFIG_DEBUG_KERNEL is not set
+CONFIG_PRINTK_TIME=y
+CONFIG_DYNAMIC_DEBUG=y
+CONFIG_MAGIC_SYSRQ=y

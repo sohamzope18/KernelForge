@@ -1,0 +1,29 @@
+# Build output
+output/
+*.rpm
+*.deb
+*.buildinfo
+*.changes
+
+# Kernel source downloads (cached separately)
+kernel-source/
+*.tar.xz
+*.tar.gz
+*.sha256
+
+# Temporary build directories
+/tmp/kernel-build/
+
+# Docker artifacts
+*.tar
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db

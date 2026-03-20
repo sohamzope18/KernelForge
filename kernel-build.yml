@@ -1,0 +1,271 @@
+name: Linux Kernel Build Pipeline
+
+# Triggers: manual trigger only
+on:
+  workflow_dispatch:
+    inputs:
+      kernel_version:
+        description: 'Kernel version (e.g. 6.6.30)'
+        required: false
+        default: '6.6.30'
+
+env:
+  KERNEL_VERSION: ${{ github.event.inputs.kernel_version || '6.6.30' }}
+
+jobs:
+  # ──────────────────────────────────────────────
+  # Stage 1: Build Docker images (parallel)
+  # ──────────────────────────────────────────────
+  build-images:
+    name: Build Docker image (${{ matrix.pkg_format }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    strategy:
+      fail-fast: false
+      matrix:
+        pkg_format: [rpm, deb]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Free disk space
+        run: |
+          echo "Disk before cleanup:"
+          df -h
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc \
+                      /usr/share/swift /usr/local/share/boost \
+                      "$AGENT_TOOLSDIRECTORY"
+          sudo apt-get clean
+          echo "Disk after cleanup:"
+          df -h
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Cache Docker layers
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache-${{ matrix.pkg_format }}
+          key: buildx-${{ matrix.pkg_format }}-${{ hashFiles(format('docker/{0}/Dockerfile', matrix.pkg_format)) }}
+          restore-keys: |
+            buildx-${{ matrix.pkg_format }}-
+
+      - name: Build and export Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: docker/${{ matrix.pkg_format }}
+          tags: kernel-builder-${{ matrix.pkg_format }}:latest
+          outputs: type=docker,dest=/tmp/kernel-builder-${{ matrix.pkg_format }}.tar
+          cache-from: type=local,src=/tmp/.buildx-cache-${{ matrix.pkg_format }}
+          cache-to: type=local,dest=/tmp/.buildx-cache-${{ matrix.pkg_format }}-new,mode=max
+
+      - name: Rotate cache
+        run: |
+          rm -rf /tmp/.buildx-cache-${{ matrix.pkg_format }}
+          mv /tmp/.buildx-cache-${{ matrix.pkg_format }}-new /tmp/.buildx-cache-${{ matrix.pkg_format }}
+
+      - name: Upload image as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-image-${{ matrix.pkg_format }}
+          path: /tmp/kernel-builder-${{ matrix.pkg_format }}.tar
+          retention-days: 1
+
+  # ──────────────────────────────────────────────
+  # Stage 2: Fetch & cache kernel source once
+  # ──────────────────────────────────────────────
+  fetch-source:
+    name: Fetch Kernel Source
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Cache kernel tarball
+        id: cache-kernel
+        uses: actions/cache@v4
+        with:
+          path: kernel-source/linux-${{ env.KERNEL_VERSION }}.tar.xz
+          key: kernel-src-${{ env.KERNEL_VERSION }}
+
+      - name: Download and verify kernel source
+        if: steps.cache-kernel.outputs.cache-hit != 'true'
+        run: bash scripts/fetch-kernel.sh "$KERNEL_VERSION" kernel-source
+
+      - name: Upload source as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: kernel-source-${{ env.KERNEL_VERSION }}
+          path: kernel-source/linux-${{ env.KERNEL_VERSION }}.tar.xz
+          retention-days: 1
+
+  # ──────────────────────────────────────────────
+  # Stage 3: Build kernel packages (matrix)
+  # ──────────────────────────────────────────────
+  build-kernel:
+    name: Build ${{ matrix.arch }} (${{ matrix.pkg_format }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 300         # 5 hours — kernel compilation can be slow
+    needs: [build-images, fetch-source]
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x86_64
+            kernel_arch: x86
+            pkg_format: rpm
+            cross_compile: ''
+          - arch: arm64
+            kernel_arch: arm64
+            pkg_format: rpm
+            cross_compile: 'aarch64-linux-gnu-'
+          - arch: x86_64
+            kernel_arch: x86
+            pkg_format: deb
+            cross_compile: ''
+          - arch: arm64
+            kernel_arch: arm64
+            pkg_format: deb
+            cross_compile: 'aarch64-linux-gnu-'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc \
+                      /usr/share/swift /usr/local/share/boost \
+                      "$AGENT_TOOLSDIRECTORY"
+          sudo apt-get clean
+          df -h
+
+      - name: Download Docker image
+        uses: actions/download-artifact@v4
+        with:
+          name: docker-image-${{ matrix.pkg_format }}
+          path: /tmp
+
+      - name: Load Docker image
+        run: docker load -i /tmp/kernel-builder-${{ matrix.pkg_format }}.tar
+
+      - name: Download kernel source
+        uses: actions/download-artifact@v4
+        with:
+          name: kernel-source-${{ env.KERNEL_VERSION }}
+          path: kernel-source
+
+      - name: Create output directory
+        run: mkdir -p output
+
+      - name: Build kernel package
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}:/workspace" \
+            -v "${{ github.workspace }}/kernel-source:/kernel-source:ro" \
+            -e KERNEL_VERSION="${{ env.KERNEL_VERSION }}" \
+            -e ARCH="${{ matrix.kernel_arch }}" \
+            -e CROSS_COMPILE="${{ matrix.cross_compile }}" \
+            kernel-builder-${{ matrix.pkg_format }}:latest \
+            /workspace/scripts/build-${{ matrix.pkg_format }}.sh
+
+      - name: List output
+        run: ls -lh output/
+
+      - name: Upload built packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: kernel-${{ matrix.arch }}-${{ matrix.pkg_format }}-${{ env.KERNEL_VERSION }}
+          path: |
+            output/*.rpm
+            output/*.deb
+            output/*.buildinfo
+          retention-days: 30
+
+  # ──────────────────────────────────────────────
+  # Stage 4: Boot test with QEMU (x86_64 only)
+  # ──────────────────────────────────────────────
+  boot-test:
+    name: QEMU Boot Test (x86_64)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: build-kernel
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download x86_64 deb packages
+        uses: actions/download-artifact@v4
+        with:
+          name: kernel-x86_64-deb-${{ env.KERNEL_VERSION }}
+          path: test-packages
+
+      - name: Install QEMU
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y qemu-system-x86 qemu-utils
+
+      - name: Run boot test
+        run: bash scripts/boot-test.sh test-packages
+
+  # ──────────────────────────────────────────────
+  # Stage 5: Release — only on main branch push
+  # ──────────────────────────────────────────────
+  release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: [build-kernel, boot-test]
+    if: github.event_name == 'workflow_dispatch'
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-packages
+          pattern: kernel-*
+
+      - name: List all packages
+        run: find release-packages -name "*.rpm" -o -name "*.deb" | sort
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: kernel-${{ env.KERNEL_VERSION }}-build.${{ github.run_number }}
+          name: "Linux Kernel ${{ env.KERNEL_VERSION }} — Build #${{ github.run_number }}"
+          body: |
+            ## Linux Kernel ${{ env.KERNEL_VERSION }}
+
+            **Built from commit:** ${{ github.sha }}
+            **Build date:** ${{ github.event.head_commit.timestamp }}
+
+            ### Packages included
+            | Arch | RPM | DEB |
+            |------|-----|-----|
+            | x86_64 | ✅ | ✅ |
+            | arm64  | ✅ | ✅ |
+
+            ### Install
+            **RPM (RHEL/CentOS/Fedora):**
+            ```bash
+            sudo rpm -ivh kernel-*.rpm
+            ```
+            **DEB (Ubuntu/Debian):**
+            ```bash
+            sudo dpkg -i linux-image-*.deb
+            ```
+          files: |
+            release-packages/**/*.rpm
+            release-packages/**/*.deb
+          fail_on_unmatched_files: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

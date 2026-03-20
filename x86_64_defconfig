@@ -1,0 +1,183 @@
+# ─────────────────────────────────────────────────────────────
+# x86_64 Kernel Configuration
+# Linux Kernel 6.6.x LTS — Minimal production config
+#
+# This is a curated subset of options. To generate a full config:
+#   make ARCH=x86_64 defconfig        (bare minimum)
+#   make ARCH=x86_64 menuconfig       (interactive editor)
+#   make ARCH=x86_64 localmodconfig   (matched to current machine)
+#
+# After placing this file in the build directory, run:
+#   make ARCH=x86_64 olddefconfig
+# to fill any missing options with upstream defaults.
+# ─────────────────────────────────────────────────────────────
+
+# ── Processor and architecture ────────────────────────────────
+CONFIG_X86_64=y
+CONFIG_64BIT=y
+CONFIG_SMP=y
+CONFIG_NR_CPUS=256
+CONFIG_PREEMPT_VOLUNTARY=y
+CONFIG_HZ_250=y
+CONFIG_HZ=250
+
+# ── General kernel features ───────────────────────────────────
+CONFIG_PRINTK=y
+CONFIG_BUG=y
+CONFIG_ELF_CORE=y
+CONFIG_BASE_FULL=y
+CONFIG_FUTEX=y
+CONFIG_EPOLL=y
+CONFIG_SIGNALFD=y
+CONFIG_TIMERFD=y
+CONFIG_EVENTFD=y
+CONFIG_SHMEM=y
+CONFIG_AIO=y
+CONFIG_IO_URING=y
+CONFIG_ADVISE_SYSCALLS=y
+CONFIG_USERFAULTFD=y
+CONFIG_MEMBARRIER=y
+CONFIG_KALLSYMS=y
+CONFIG_KALLSYMS_ALL=y
+
+# ── Memory management ─────────────────────────────────────────
+CONFIG_SPARSEMEM_VMEMMAP=y
+CONFIG_TRANSPARENT_HUGEPAGE=y
+CONFIG_TRANSPARENT_HUGEPAGE_ALWAYS=y
+CONFIG_COMPACTION=y
+CONFIG_MIGRATION=y
+CONFIG_KSM=y
+CONFIG_MEMORY_HOTPLUG=y
+CONFIG_MEMORY_HOTREMOVE=y
+CONFIG_ZONE_DMA=y
+CONFIG_ZONE_DMA32=y
+CONFIG_NUMA=y
+CONFIG_NUMA_BALANCING=y
+
+# ── Block layer ───────────────────────────────────────────────
+CONFIG_BLOCK=y
+CONFIG_BLK_DEV_BSG=y
+CONFIG_BLK_DEV_BSGLIB=y
+CONFIG_IOSCHED_MQUEUE=y
+CONFIG_MQ_IOSCHED_DEADLINE=y
+CONFIG_MQ_IOSCHED_KYBER=y
+CONFIG_BLK_WBT=y
+
+# ── Storage drivers ───────────────────────────────────────────
+CONFIG_ATA=y
+CONFIG_ATA_VERBOSE_ERROR=y
+CONFIG_SATA_AHCI=y
+CONFIG_ATA_PIIX=y
+CONFIG_SCSI=y
+CONFIG_BLK_DEV_SD=y
+CONFIG_SCSI_VIRTIO=y
+CONFIG_VIRTIO_BLK=y
+CONFIG_NVME_CORE=y
+CONFIG_BLK_DEV_NVME=y
+
+# ── Network ───────────────────────────────────────────────────
+CONFIG_NET=y
+CONFIG_INET=y
+CONFIG_IPV6=y
+CONFIG_NETFILTER=y
+CONFIG_NETFILTER_ADVANCED=y
+CONFIG_NF_CONNTRACK=m
+CONFIG_IP_NF_IPTABLES=m
+CONFIG_IP_NF_FILTER=m
+CONFIG_IP_NF_NAT=m
+CONFIG_NET_SCHED=y
+CONFIG_NET_SCH_FQ_CODEL=y
+CONFIG_TCP_CONG_BBR=m
+CONFIG_VIRTIO_NET=y
+CONFIG_E1000=y
+CONFIG_E1000E=y
+CONFIG_IGB=y
+CONFIG_IXGBE=y
+
+# ── Filesystems ───────────────────────────────────────────────
+CONFIG_EXT4_FS=y
+CONFIG_EXT4_USE_FOR_EXT2=y
+CONFIG_XFS_FS=y
+CONFIG_BTRFS_FS=y
+CONFIG_TMPFS=y
+CONFIG_TMPFS_POSIX_ACL=y
+CONFIG_PROC_FS=y
+CONFIG_SYSFS=y
+CONFIG_DEVTMPFS=y
+CONFIG_DEVTMPFS_MOUNT=y
+CONFIG_VFAT_FS=y
+CONFIG_OVERLAY_FS=y                # Required for Docker/containers
+CONFIG_FUSE_FS=m
+
+# ── Virtualization ────────────────────────────────────────────
+CONFIG_VIRTIO=y
+CONFIG_VIRTIO_PCI=y
+CONFIG_VIRTIO_BALLOON=y
+CONFIG_VIRTIO_CONSOLE=y
+CONFIG_KVM=m
+CONFIG_KVM_INTEL=m
+CONFIG_KVM_AMD=m
+CONFIG_VHOST_NET=m
+
+# ── Security ─────────────────────────────────────────────────
+CONFIG_SECURITY=y
+CONFIG_SECURITY_SELINUX=y
+CONFIG_SECURITY_SELINUX_BOOTPARAM=y
+CONFIG_SECURITY_APPARMOR=y
+CONFIG_DEFAULT_SECURITY_APPARMOR=y
+CONFIG_SECCOMP=y
+CONFIG_SECCOMP_FILTER=y
+CONFIG_RANDOMIZE_BASE=y             # KASLR
+CONFIG_STACKPROTECTOR_STRONG=y
+CONFIG_CC_STACKPROTECTOR_STRONG=y
+CONFIG_HARDENED_USERCOPY=y
+
+# ── Namespaces and cgroups (required for containers) ─────────
+CONFIG_NAMESPACES=y
+CONFIG_UTS_NS=y
+CONFIG_IPC_NS=y
+CONFIG_USER_NS=y
+CONFIG_PID_NS=y
+CONFIG_NET_NS=y
+CONFIG_CGROUPS=y
+CONFIG_CGROUP_FREEZER=y
+CONFIG_CGROUP_DEVICE=y
+CONFIG_CPUSETS=y
+CONFIG_CGROUP_CPUACCT=y
+CONFIG_MEMCG=y
+CONFIG_BLK_CGROUP=y
+CONFIG_CGROUP_SCHED=y
+CONFIG_FAIR_GROUP_SCHED=y
+
+# ── Hardware support ──────────────────────────────────────────
+CONFIG_PCI=y
+CONFIG_PCI_MSI=y
+CONFIG_PCIEPORTBUS=y
+CONFIG_USB_SUPPORT=y
+CONFIG_USB=y
+CONFIG_USB_XHCI_HCD=y
+CONFIG_HID=y
+CONFIG_HID_GENERIC=y
+CONFIG_INPUT=y
+CONFIG_INPUT_KEYBOARD=y
+
+# ── Serial / console ─────────────────────────────────────────
+CONFIG_TTY=y
+CONFIG_SERIAL_8250=y
+CONFIG_SERIAL_8250_CONSOLE=y
+CONFIG_VT=y
+CONFIG_VT_CONSOLE=y
+CONFIG_UNIX98_PTYS=y
+
+# ── Module support ────────────────────────────────────────────
+CONFIG_MODULES=y
+CONFIG_MODULE_UNLOAD=y
+CONFIG_MODVERSIONS=y
+CONFIG_MODULE_SIG=y
+CONFIG_MODULE_SIG_SHA256=y
+
+# ── Debugging (minimal — disable for production) ─────────────
+# CONFIG_DEBUG_KERNEL is not set
+CONFIG_PRINTK_TIME=y
+CONFIG_DYNAMIC_DEBUG=y
+CONFIG_MAGIC_SYSRQ=y
