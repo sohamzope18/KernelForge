@@ -1,7 +1,10 @@
 name: Linux Kernel Build Pipeline
 
-# Triggers: manual trigger only
+# Triggers: manual trigger and on push
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
     inputs:
       kernel_version:
@@ -222,7 +225,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     needs: [build-kernel, boot-test]
-    if: github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
 
     permissions:
       contents: write
