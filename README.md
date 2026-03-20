@@ -12,7 +12,7 @@ and **DEB** (Ubuntu/Debian) packages — triggered automatically via GitHub Acti
 linux-kernel-build/
 ├── .github/
 │   └── workflows/
-│       └── kernel-build.yml      ← GitHub Actions pipeline (5 stages)
+│       └── ci.yml      ← GitHub Actions pipeline (5 stages)
 ├── docker/
 │   ├── rpm/
 │   │   └── Dockerfile            ← Fedora-based RPM build environment
@@ -83,7 +83,9 @@ cd linux-kernel-build
 chmod +x scripts/*.sh
 ```
 
-### 3. Push to trigger CI
+### 3. Trigger the build
+
+The pipeline is **manually triggered** — it does not run on every push.
 
 ```bash
 git add .
@@ -91,7 +93,7 @@ git commit -m "initial kernel build setup"
 git push origin main
 ```
 
-The pipeline starts automatically. Check the **Actions** tab in GitHub.
+Then go to the **Actions** tab in GitHub → select **Linux Kernel Build Pipeline** → click **Run workflow** → choose your kernel version → click **Run workflow**.
 
 ---
 
@@ -192,7 +194,7 @@ docker run --rm -it \
 Trigger the workflow manually from the **Actions** tab → **Run workflow** → enter
 your desired version (e.g. `6.9.1`).
 
-Or change the default in `.github/workflows/kernel-build.yml`:
+Or change the default in `.github/workflows/ci.yml`:
 
 ```yaml
 env:
