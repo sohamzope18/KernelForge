@@ -2,6 +2,7 @@ name: Linux Kernel Build Pipeline
 
 # Triggers: manual trigger only
 on:
+  push:
   workflow_dispatch:
     inputs:
       kernel_version:
