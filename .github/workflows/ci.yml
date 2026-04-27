@@ -216,14 +216,14 @@ jobs:
         run: bash scripts/boot-test.sh test-packages
 
   # ──────────────────────────────────────────────
-  # Stage 5: Release — only on main branch push
+  # Stage 5: Release — on every commit
   # ──────────────────────────────────────────────
   release:
     name: Create GitHub Release
     runs-on: ubuntu-latest
     timeout-minutes: 15
     needs: [build-kernel, boot-test]
-    if: github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
 
     permissions:
       contents: write

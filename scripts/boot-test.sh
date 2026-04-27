@@ -103,7 +103,6 @@ timeout "$TIMEOUT_SECONDS" qemu-system-x86_64 \
     -m 512M \
     -no-reboot \
     -nographic \
-    -serial stdio \
     2>&1 | tee "$QEMU_LOG" || QEMU_EXIT=$?
 
 echo "─────────────────────────────────────────"
